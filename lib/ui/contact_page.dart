@@ -21,6 +21,7 @@ class _ContactPageState extends State<ContactPage> {
   final _emailController  = TextEditingController();
 
 
+  final _nameFocus = FocusNode();
 
   @override
   void initState() {
@@ -47,7 +48,13 @@ class _ContactPageState extends State<ContactPage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.red,
         child: Icon(Icons.save),
-        onPressed: () {},
+        onPressed: () {
+          if(_editContact.name.isNotEmpty && _editContact.name != null){
+            Navigator.pop(context, _editContact);
+          } else {
+            FocusScope.of(context).requestFocus(_nameFocus);
+          }
+        },
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(10.0),
@@ -69,6 +76,7 @@ class _ContactPageState extends State<ContactPage> {
             ),
             TextField(
               controller: _nameController,
+              focusNode: _nameFocus,
               decoration: InputDecoration(labelText: 'Nome'),
               keyboardType: TextInputType.text,
               onChanged: (text){

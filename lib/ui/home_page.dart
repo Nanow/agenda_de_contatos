@@ -49,6 +49,9 @@ class _HomeState extends State<Home> {
   Widget _contactsCard(BuildContext context, int index) {
     Contact contato = contactList[index];
     return GestureDetector(
+      onTap: (){
+        _showContactPage(contact: contactList[index]);
+      },
       child: Card(
 
         child: SingleChildScrollView(

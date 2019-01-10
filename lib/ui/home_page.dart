@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:agenda_de_contatos/helpers/contact_helper.dart';
 import 'package:agenda_de_contatos/ui/contact_page.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+enum OrderOptions { orderaz, orderza }
 
 class Home extends StatefulWidget {
   @override
@@ -20,7 +23,6 @@ class _HomeState extends State<Home> {
     _loadContact();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,6 +30,21 @@ class _HomeState extends State<Home> {
         title: Text('Contatos'),
         backgroundColor: Colors.red,
         centerTitle: true,
+        actions: <Widget>[
+          PopupMenuButton<OrderOptions>(
+            itemBuilder: (context) => <PopupMenuEntry<OrderOptions>>[
+                  const PopupMenuItem<OrderOptions>(
+                    child: Text('Ordenar de A-Z'),
+                    value: OrderOptions.orderaz,
+                  ),
+                  const PopupMenuItem<OrderOptions>(
+                    child: Text('Ordenar de Z-A'),
+                    value: OrderOptions.orderza,
+                  )
+                ],
+            onSelected: _orderList,
+          ),
+        ],
       ),
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
@@ -47,7 +64,7 @@ class _HomeState extends State<Home> {
     Contact contato = contactList[index];
     return GestureDetector(
       onTap: () {
-        _showContactPage(contact: contactList[index]);
+        _showOptions(context, index);
       },
       child: Card(
         child: SingleChildScrollView(
@@ -95,6 +112,69 @@ class _HomeState extends State<Home> {
     );
   }
 
+  void _showOptions(BuildContext context, int index) {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return BottomSheet(
+            onClosing: () {},
+            builder: (context) {
+              return Container(
+                padding: EdgeInsets.all(10.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.all(1.0),
+                      child: FlatButton(
+                        child: Text(
+                          'Ligar',
+                          style: TextStyle(color: Colors.red, fontSize: 20.0),
+                        ),
+                        onPressed: () {
+                          launch('tel:${contactList[index].phone}');
+                        },
+                      ),
+                    ),
+                    Divider(),
+                    Padding(
+                      padding: EdgeInsets.all(1.0),
+                      child: FlatButton(
+                        child: Text(
+                          'Editar',
+                          style: TextStyle(color: Colors.red, fontSize: 20.0),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _showContactPage(contact: contactList[index]);
+                        },
+                      ),
+                    ),
+                    Divider(),
+                    Padding(
+                      padding: EdgeInsets.all(1.0),
+                      child: FlatButton(
+                        child: Text(
+                          'Excluir',
+                          style: TextStyle(color: Colors.red, fontSize: 20.0),
+                        ),
+                        onPressed: () {
+                          helper.deleteContact(contactList[index].id);
+                          setState(() {
+                            contactList.removeAt(index);
+                            Navigator.pop(context);
+                          });
+                        },
+                      ),
+                    )
+                  ],
+                ),
+              );
+            },
+          );
+        });
+  }
+
   _loadContact() {
     helper.getAll().then((list) {
       setState(() {
@@ -110,8 +190,8 @@ class _HomeState extends State<Home> {
             builder: (context) => ContactPage(
                   contact: contact,
                 )));
-    if(recContact != null){
-      if(contact != null) {
+    if (recContact != null) {
+      if (contact != null) {
         await helper.updateContact(recContact);
       } else {
         await helper.saveContact(recContact);
@@ -120,5 +200,22 @@ class _HomeState extends State<Home> {
     }
   }
 
+  void _orderList(OrderOptions result) {
+    switch (result) {
+      case OrderOptions.orderaz:
+        contactList.sort((a, b) {
+          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        });
+        break;
+      case OrderOptions.orderza:
+        contactList.sort((a, b) {
+          return b.name.toLowerCase().compareTo(a.name.toLowerCase());
+        });
+        break;
 
+    }
+    setState(() {
+
+    });
+  }
 }
